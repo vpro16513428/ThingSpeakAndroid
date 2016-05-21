@@ -100,6 +100,7 @@ public class ThingSpeakChannel {
     private ThingSpeakService mService;
 
     private long mChannelId;
+    private String mChannelPercnet;
     private String mReadApiKey;
     private int mResults = 100;
     private int mDays = -1;
@@ -300,6 +301,11 @@ public class ThingSpeakChannel {
         return mChannelId;
     }
 
+    public String getChannelPercent() {
+        loadChannelFeed();
+        return mChannelPercnet;
+    }
+
     /***
      * Retrieve the Channel Feed of this specific Channel asynchronously.
      */
@@ -307,6 +313,17 @@ public class ThingSpeakChannel {
         mService.getChannelFeed(mChannelId, getChannelRequestParams(), new Callback<ChannelFeed>() {
             @Override
             public void success(ChannelFeed channelFeed, Response response) {
+                if(channelFeed.getFeeds().size()!=0){
+                    float tempMax=0,tempLast=0,percent=0;
+                    tempLast= Float.parseFloat(channelFeed.getFeeds().get(channelFeed.getFeeds().size()-1).getField1());
+                    for(int i = 0 ;i<channelFeed.getFeeds().size();i++){
+                        if(tempMax < Float.parseFloat(channelFeed.getFeeds().get(i).getField1())){
+                            tempMax = Float.parseFloat(channelFeed.getFeeds().get(i).getField1());
+                        }
+                    }
+                    percent=tempLast/tempMax;
+                    mChannelPercnet= String.format("%.1f", percent);
+                }
                 if (mChannelFeedUpdateListener != null) {
                     mChannelFeedUpdateListener.onChannelFeedUpdated(mChannelId, channelFeed.getChannel().getName(), channelFeed);
                 }
