@@ -100,7 +100,9 @@ public class ThingSpeakChannel {
     private ThingSpeakService mService;
 
     private long mChannelId;
+    private String mChannelname;
     private String mChannelPercnet;
+    private String mWriteApiKey;
     private String mReadApiKey;
     private int mResults = 100;
     private int mDays = -1;
@@ -113,19 +115,10 @@ public class ThingSpeakChannel {
      *
      * @param channelId The ID of this specific Channel.
      */
-    public ThingSpeakChannel(long channelId) {
-        this(channelId, null);
-    }
-
-    /***
-     * Constructor for private Channels.
-     *
-     * @param channelId The ID of this specific Channel.
-     * @param readApiKey The Read API Key for this specific Channel.
-     */
-    public ThingSpeakChannel(long channelId, String readApiKey) {
+    public ThingSpeakChannel(long channelId,String channelname,String writeKey) {
         this.mChannelId = channelId;
-        this.mReadApiKey = readApiKey;
+        this.mChannelname = channelname;
+        this.mWriteApiKey=writeKey;
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
@@ -302,8 +295,15 @@ public class ThingSpeakChannel {
     }
 
     public String getChannelPercent() {
-        loadChannelFeed();
         return mChannelPercnet;
+    }
+
+    public String getChannelname() {
+        return mChannelname;
+    }
+
+    public String getWirteKey() {
+        return mWriteApiKey;
     }
 
     /***
@@ -313,6 +313,7 @@ public class ThingSpeakChannel {
         mService.getChannelFeed(mChannelId, getChannelRequestParams(), new Callback<ChannelFeed>() {
             @Override
             public void success(ChannelFeed channelFeed, Response response) {
+                mChannelname=channelFeed.getChannel().getName();
                 if(channelFeed.getFeeds().size()!=0){
                     float tempMax=0,tempLast=0,percent=0;
                     tempLast= Float.parseFloat(channelFeed.getFeeds().get(channelFeed.getFeeds().size()-1).getField1());
@@ -322,7 +323,9 @@ public class ThingSpeakChannel {
                         }
                     }
                     percent=tempLast/tempMax;
-                    mChannelPercnet= String.format("%.1f", percent);
+                    mChannelPercnet= String.format("%.1f", percent*100);
+                }else {
+                    mChannelPercnet="0.0";
                 }
                 if (mChannelFeedUpdateListener != null) {
                     mChannelFeedUpdateListener.onChannelFeedUpdated(mChannelId, channelFeed.getChannel().getName(), channelFeed);
