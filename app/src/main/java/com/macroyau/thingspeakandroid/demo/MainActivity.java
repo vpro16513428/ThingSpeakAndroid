@@ -20,10 +20,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     int channel_total = 0;
     int Prechannel_total = 0;
+    Boolean openPush=false;
     ThingSpeakChannel[] tsChannel = new ThingSpeakChannel[0];
     String User_APIKEY = "";
     String Sensor_IP[];
@@ -102,28 +105,20 @@ public class MainActivity extends AppCompatActivity {
                                     User_APIKEY = inputText4.getText().toString();
                                     mUser=new User(User_APIKEY);
                                     mUser.setOnRefreshChannelListener(new refreshListner());
-                                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-                                    intent.putExtra("User_APIKEY", User_APIKEY);
-                                    intent.putExtra("red_warn", red_warn);
-                                    startService(intent);
-                                    intent = new Intent(MainActivity.this,mainService.class);
+                                    Intent intent = new Intent(MainActivity.this,mainService.class);
                                     intent.putExtra("User_APIKEY", User_APIKEY);
                                     startService(intent);
-                                    Toast.makeText(MainActivity.this, "Service start", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "mianService start", Toast.LENGTH_SHORT).show();
                                 }
                             })
                     .show();
         }else{
             mUser=new User(User_APIKEY);
             mUser.setOnRefreshChannelListener(new refreshListner());
-            Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-            intent.putExtra("User_APIKEY", User_APIKEY);
-            intent.putExtra("red_warn", red_warn);
-            startService(intent);
-            intent = new Intent(MainActivity.this,mainService.class);
+            Intent intent = new Intent(MainActivity.this,mainService.class);
             intent.putExtra("User_APIKEY", User_APIKEY);
             startService(intent);
-            Toast.makeText(MainActivity.this, "Service start", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "mianService start", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -131,9 +126,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         writeData();
-        Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-        stopService(intent);
-        Toast.makeText(MainActivity.this, "Service stop", Toast.LENGTH_SHORT).show();
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -191,9 +183,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openedit(){ //修改Channel
-        String[] str = new String[channel_total+1];
-        for(int i=0; i<=channel_total; i++){
-            str[i] = item.get(i);
+        String[] str = new String[channel_total];
+        for(int i=0; i<channel_total; i++){
+            str[i] = tsChannel[i].getChannelname();
         }
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("修改")
@@ -244,9 +236,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void opendelete(){ //刪除Channel
-        String[] str = new String[channel_total+1];
-        for (int i = 0; i <= channel_total; i++) {
-            str[i] = item.get(i);
+        String[] str = new String[channel_total];
+        for (int i = 0; i < channel_total; i++) {
+            str[i] = tsChannel[i].getChannelname();
         }
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("刪除")
@@ -291,9 +283,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openreset() { //重置Channel
-        String[] str = new String[channel_total + 1];
-        for (int i = 0; i <= channel_total; i++) {
-            str[i] = item.get(i);
+        String[] str = new String[channel_total];
+        for (int i = 0; i < channel_total; i++) {
+            str[i] = tsChannel[i].getChannelname();
         }
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("重置")
@@ -329,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
         final TextView text4 = (TextView) v.findViewById(R.id.textView4);
         final Button scn_btn = (Button) v.findViewById(R.id.Scan_sensor_button);
         final Button set_btn = (Button) v.findViewById(R.id.Set_sensor_button);
+        final Switch Push_switch = (Switch) v.findViewById(R.id.Push_switch);
         seekbar.setProgress(yellow_warn);
         seekbar2.setProgress(red_warn);
         text3.setText(yellow_warn + "%");
@@ -351,9 +344,6 @@ public class MainActivity extends AppCompatActivity {
                                 channelListAdapter.setYellowWarnValue(yellow_warn);
                                 channelListAdapter.setRedWarnValue(red_warn);
                                 channelListAdapter.notifyDataSetChanged();
-                                Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-                                stopService(intent);
-                                Toast.makeText(MainActivity.this, "Service stop", Toast.LENGTH_SHORT).show();
                             }
                         });
 
@@ -364,11 +354,13 @@ public class MainActivity extends AppCompatActivity {
                 progress = progressV;
                 text3.setText((progress) + "%");
                 yellow_warn = progress;
-                if (yellow_warn<50){
-                    seekBar.setProgress(50);
-                    yellow_warn = 50;
+                if (yellow_warn<1){
+                    seekBar.setProgress(1);
+                    yellow_warn = 1;
                     text3.setText((progress) + "%");
                 }
+                channelListAdapter.setYellowWarnValue(yellow_warn);
+                channelListAdapter.notifyDataSetChanged();
             }
 
             public void onStartTrackingTouch(SeekBar arg0) {
@@ -385,12 +377,32 @@ public class MainActivity extends AppCompatActivity {
                 progress = progressV;
                 text4.setText((progress) + "%");
                 red_warn = progress;
+                channelListAdapter.setRedWarnValue(red_warn);
+                channelListAdapter.notifyDataSetChanged();
             }
 
             public void onStartTrackingTouch(SeekBar arg0) {
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+        Push_switch.setChecked(openPush);
+        Push_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
+                    intent.putExtra("User_APIKEY", User_APIKEY);
+                    intent.putExtra("red_warn", red_warn);
+                    startService(intent);
+                } else {
+                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
+                    intent.putExtra("User_APIKEY", User_APIKEY);
+                    intent.putExtra("red_warn", red_warn);
+                    stopService(intent);
+                }
             }
         });
 
@@ -796,6 +808,7 @@ public class MainActivity extends AppCompatActivity {
             data.put("yellow_warn", yellow_warn);
             data.put("red_warn", red_warn);
             data.put("channel_total", channel_total);
+            data.put("openPush",openPush);
             osw.write(data.toString());
             osw.flush();
             osw.close();
@@ -827,6 +840,7 @@ public class MainActivity extends AppCompatActivity {
                 yellow_warn = Integer.parseInt(data.getString("yellow_warn"));
                 red_warn = Integer.parseInt(data.getString("red_warn"));
                 channel_total = Integer.parseInt(data.getString("channel_total"));
+                openPush = data.getBoolean("openPush");
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -858,7 +872,9 @@ public class MainActivity extends AppCompatActivity {
 
         private Runnable showTime = new Runnable() {
             public void run() {
-                mUser.refreshMyChannels();
+                if(mUser!=null){
+                    mUser.refreshMyChannels();
+                }
                 Log.d("main_Service","run to end once time");
                 handler.postDelayed(this, 1000);
             }
