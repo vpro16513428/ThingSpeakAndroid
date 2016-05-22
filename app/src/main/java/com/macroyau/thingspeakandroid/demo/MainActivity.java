@@ -377,6 +377,11 @@ public class MainActivity extends AppCompatActivity {
                 progress = progressV;
                 text4.setText((progress) + "%");
                 red_warn = progress;
+                if (red_warn<1){
+                    seekBar2.setProgress(1);
+                    yellow_warn = 1;
+                    text4.setText((progress) + "%");
+                }
                 channelListAdapter.setRedWarnValue(red_warn);
                 channelListAdapter.notifyDataSetChanged();
             }
@@ -473,14 +478,17 @@ public class MainActivity extends AppCompatActivity {
         set_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] str = new String[channel_total+2];
-                final String[] str1 = new String[2];
+                if(channel_total<1) {
+                    return;
+                }
+                String[] str = new String[channel_total+1];
+                final String[] str1 = new String[Sensor_IP.length+1];
                 str[0] = "請選擇Channel Name：";
                 str1[0] = "請選擇Channel IP：";
-                for (int i = 1; i <= channel_total+1; i++) {
+                for (int i = 1; i < channel_total+1; i++) {
                     str[i] = tsChannel[i-1].getChannelname();
                 }
-                for (int i=1; i <= 1; i++){
+                for (int i=1; i < Sensor_IP.length+1; i++){
                     str1[i] = Sensor_IP[i-1];
                 }
                 LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
@@ -615,8 +623,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             mProgressDialog = new ProgressDialog(MainActivity.this);
-            mProgressDialog
-                    .setMessage("Esptouch is configuring, please wait for a moment...");
+            mProgressDialog.setMessage("尋找裝置");
             mProgressDialog.setCanceledOnTouchOutside(false);
             mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
@@ -631,15 +638,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
-            mProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE,
-                    "Waiting...", new DialogInterface.OnClickListener() {
+            mProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE, "尋找中", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+
                         }
                     });
             mProgressDialog.show();
-            mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
-                    .setEnabled(false);
+            mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
         }
 
         @Override
@@ -668,7 +674,7 @@ public class MainActivity extends AppCompatActivity {
             mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE)
                     .setEnabled(true);
             mProgressDialog.getButton(DialogInterface.BUTTON_POSITIVE).setText(
-                    "Confirm");
+                    "確定");
             IEsptouchResult firstResult = result.get(0);
             // check whether the task is cancelled and no results received
             if (!firstResult.isCancelled()) {
@@ -681,14 +687,9 @@ public class MainActivity extends AppCompatActivity {
                 if (firstResult.isSuc()) {
                     StringBuilder sb = new StringBuilder();
                     for (IEsptouchResult resultInList : result) {
-                        sb.append("Esptouch success, bssid = "
-                                + resultInList.getBssid()
-                                + ",InetAddress = "
-                                + resultInList.getInetAddress()
-                                .getHostAddress() + "\n");
-                        Sensor_IP[0] = resultInList.getInetAddress().toString();
+                        sb.append("裝置掃描成功, bssid = " + resultInList.getBssid() + ",IP位置 = " + resultInList.getInetAddress().getHostAddress() + "\n");
+                        Sensor_IP[0] = resultInList.getInetAddress().getHostAddress();
                         Toast.makeText(MainActivity.this, Sensor_IP[0], Toast.LENGTH_LONG).show();
-                        sb.append("Esptouch success, bssid = " + resultInList.getBssid() + ",InetAddress = " + resultInList.getInetAddress().getHostAddress() + "\n");
                         count++;
                         if (count >= maxDisplayCount) {
                             break;
@@ -699,7 +700,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mProgressDialog.setMessage(sb.toString());
                 } else {
-                    mProgressDialog.setMessage("Esptouch fail");
+                    mProgressDialog.setMessage("裝置掃描失敗");
                 }
             }
         }
