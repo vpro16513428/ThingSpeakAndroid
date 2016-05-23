@@ -12,23 +12,12 @@
     <Spinner
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/spinner"/>
-
-    <Spinner
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/spinner2"/>
+        android:id="@+id/IP_spinner"/>
 
     <Button
         android:id="@+id/connect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Connect..."/>
-
-    <Button
-        android:id="@+id/send_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Send"/>
+        android:text="傳送"/>
 
 </LinearLayout>

@@ -17,14 +17,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SeekBar;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,16 +36,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     Boolean openPush=false;
     ThingSpeakChannel[] tsChannel = new ThingSpeakChannel[0];
     String User_APIKEY = "";
-    String Sensor_IP[];
+    String Sensor_IP[] = new String[1];
     Socket socket = null;
 
     static User mUser;
@@ -77,11 +71,10 @@ public class MainActivity extends AppCompatActivity {
         readSavedData();
         listinput = (ListView)findViewById(R.id.channelListView);
         item = new ArrayList<>();
-        channelListAdapter = new channelListAdapter(this, tsChannel,yellow_warn,red_warn);
-        listinput.setAdapter(channelListAdapter);
 
-        /*只有一個裝置 初始化暫時寫死 SCAN SENSOR 那邊會存取這裡的值*/
-        Sensor_IP = new String[1];
+        /*目前只有一個裝置 初始化暫時寫死
+                1. SCAN SENSOR 會存取Sensor_IP[0]的值
+                2. readSavedData 會存取Sensor_IP[0]的值*/
         Sensor_IP[0] = "192.168.1.101";
 
         if(User_APIKEY.equals("")){
@@ -103,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     User_APIKEY = inputText4.getText().toString();
+                                    channelListAdapter = new channelListAdapter(MainActivity.this,User_APIKEY,tsChannel,yellow_warn,red_warn);
+                                    channelListAdapter.setSensor_IP(Sensor_IP);
+                                    listinput.setAdapter(channelListAdapter);
                                     mUser=new User(User_APIKEY);
                                     mUser.setOnRefreshChannelListener(new refreshListner());
                                     Intent intent = new Intent(MainActivity.this,mainService.class);
@@ -113,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
                             })
                     .show();
         }else{
+            channelListAdapter = new channelListAdapter(this,User_APIKEY,tsChannel,yellow_warn,red_warn);
+            channelListAdapter.setSensor_IP(Sensor_IP);
+            listinput.setAdapter(channelListAdapter);
             mUser=new User(User_APIKEY);
             mUser.setOnRefreshChannelListener(new refreshListner());
             Intent intent = new Intent(MainActivity.this,mainService.class);
@@ -139,15 +138,6 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_add:
                 openadd();
-                return true;
-            case R.id.action_edit:
-                openedit();
-                return true;
-            case R.id.action_delete:
-                opendelete();
-                return true;
-            case R.id.action_reset:
-                openreset();
                 return true;
             case R.id.action_settings:
                 opensetting();
@@ -183,136 +173,6 @@ public class MainActivity extends AppCompatActivity {
                 .create().show();
     }
 
-    private void openedit(){ //修改Channel
-        String[] str = new String[channel_total];
-        for(int i=0; i<channel_total; i++){
-            str[i] = tsChannel[i].getChannelname();
-        }
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("修改")
-                .setSingleChoiceItems(str, -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which){
-                        y = which;
-                        Log.d("y", String.valueOf(y));
-                    }
-                })
-                .setPositiveButton("取消",
-                        new DialogInterface.OnClickListener(){
-                            @Override
-                            public void onClick(DialogInterface dialog, int which){
-                                dialog.cancel();
-                            }
-                        })
-                .setNegativeButton("確定",
-                        new DialogInterface.OnClickListener(){
-                            @Override
-                            public void onClick(DialogInterface dialog, int which){
-                                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-                                final View v = inflater.inflate(R.layout.edit_activity, null);
-                                final EditText inputText2 = (EditText)v.findViewById(R.id.edit2);
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setTitle("修改")
-                                        .setView(v)
-                                        .setPositiveButton("取消",
-                                                new  DialogInterface.OnClickListener(){
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which){
-                                                        dialog.cancel();
-                                                    }
-                                                })
-                                        .setNegativeButton("確定",
-                                                new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        if (!inputText2.getText().toString().equals("")){
-                                                            mUser.editChannel(tsChannel[y].getChannelId(),inputText2.getText().toString());
-                                                        }
-                                                    }
-                                                })
-                                        .show();
-                            }
-                        })
-                .show();
-    }
-
-    private void opendelete(){ //刪除Channel
-        String[] str = new String[channel_total];
-        for (int i = 0; i < channel_total; i++) {
-            str[i] = tsChannel[i].getChannelname();
-        }
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("刪除")
-                .setSingleChoiceItems(str, -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        y = which;
-                    }
-                })
-                .setPositiveButton("取消",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        })
-                .setNegativeButton("確定",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mUser.deleteChannel(tsChannel[y].getChannelId());
-//                                item.remove(y);
-//                                channelListAdapter.notifyDataSetChanged();
-//
-//                                channel_total-=1;
-//                                String[][] temp =new String[channel_total+1][5];
-//                                for (int i = 0;i<y;i++){
-//                                    temp[i]=Channel_Info[i].clone();
-//                                }
-//                                for (int i = y;i<=channel_total;i++){
-//                                    temp[i]=Channel_Info[i+1].clone();
-//                                }
-//                                Channel_Info=temp;
-//
-//
-//                                if(channel_total<0){
-//                                    Channel_Info=null;
-//                                }
-                            }
-                        })
-                .show();
-    }
-
-    private void openreset() { //重置Channel
-        String[] str = new String[channel_total];
-        for (int i = 0; i < channel_total; i++) {
-            str[i] = tsChannel[i].getChannelname();
-        }
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("重置")
-                .setSingleChoiceItems(str, -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        y = which;
-                    }
-                })
-                .setPositiveButton("取消",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        })
-                .setNegativeButton("確定",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mUser.resetChannel(tsChannel[y].getChannelId());
-                            }
-                        })
-                .show();
-    }
-
     private void opensetting() {
         final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
         final View v = inflater.inflate(R.layout.setting_activity, null);
@@ -321,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         final SeekBar seekbar2 = (SeekBar) v.findViewById(R.id.seekBar2);
         final TextView text4 = (TextView) v.findViewById(R.id.textView4);
         final Button scn_btn = (Button) v.findViewById(R.id.Scan_sensor_button);
-        final Button set_btn = (Button) v.findViewById(R.id.Set_sensor_button);
         final Switch Push_switch = (Switch) v.findViewById(R.id.Push_switch);
         seekbar.setProgress(yellow_warn);
         seekbar2.setProgress(red_warn);
@@ -486,93 +345,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        set_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(channel_total<1) {
-                    return;
-                }
-                String[] str = new String[channel_total+1];
-                final String[] str1 = new String[Sensor_IP.length+1];
-                str[0] = "請選擇Channel Name：";
-                str1[0] = "請選擇Channel IP：";
-                for (int i = 1; i < channel_total+1; i++) {
-                    str[i] = tsChannel[i-1].getChannelname();
-                }
-                for (int i=1; i < Sensor_IP.length+1; i++){
-                    str1[i] = Sensor_IP[i-1];
-                }
-                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-                final View set_v = inflater.inflate(R.layout.socket_activity, null);
-                final Spinner spinner;
-                final Spinner spinner2;
-                final TextView txtSend;
-                final Button buttonConnect, buttonSend;
-                spinner = (Spinner)set_v.findViewById(R.id.spinner);
-                spinner2 = (Spinner)set_v.findViewById(R.id.spinner2);
-                buttonConnect = (Button) set_v.findViewById(R.id.connect);
-                buttonSend = (Button) set_v.findViewById(R.id.send_btn);
-
-
-                name_adapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, str);
-                spinner.setAdapter(name_adapter);
-                spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void  onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
-                        x = position;
-                        Log.d("x", String.valueOf(x));
-                    }
-                    @Override
-                    public void  onNothingSelected(AdapterView<?> arg0) {
-                    }
-                });
-
-                ip_adapter=new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, str1);
-                spinner2.setAdapter(ip_adapter);
-                spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void  onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
-                        y = position;
-                        Log.d("y", String.valueOf(y));
-                    }
-                    @Override
-                    public void  onNothingSelected(AdapterView<?> arg0) {
-                    }
-                });
-
-                buttonConnect.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (v == buttonConnect) {
-                            MyClient_connect_Task myClientTask = new MyClient_connect_Task(str1[y], 18266);
-                            myClientTask.execute();
-                        }
-                    }
-                });
-                buttonSend.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (v == buttonSend) {
-
-                            MyClient_send_Task myClient_send_task = new MyClient_send_Task();
-                            myClient_send_task.execute("Channel_APIKEY:"+tsChannel[x-1].getWirteKey());
-                        }
-                    }
-                });
-
-                final AlertDialog.Builder set = new AlertDialog.Builder(MainActivity.this);
-                set.setTitle("Set Sensor")
-                        .setView(set_v)
-                        .setPositiveButton("離開",
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.cancel();
-                                    }
-                                });
-                set.create().show();
-            }
-        });
         setting.create().show();
     }
 
@@ -700,6 +472,7 @@ public class MainActivity extends AppCompatActivity {
                     for (IEsptouchResult resultInList : result) {
                         sb.append("裝置掃描成功, bssid = " + resultInList.getBssid() + ",IP位置 = " + resultInList.getInetAddress().getHostAddress() + "\n");
                         Sensor_IP[0] = resultInList.getInetAddress().getHostAddress();
+                        channelListAdapter.setSensor_IP(Sensor_IP);
                         Toast.makeText(MainActivity.this, Sensor_IP[0], Toast.LENGTH_LONG).show();
                         count++;
                         if (count >= maxDisplayCount) {
@@ -717,99 +490,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class MyClient_connect_Task extends AsyncTask<Void, Void, Void> {
-
-        String dstAddress;
-        int dstPort;
-        String response = "";
-
-        MyClient_connect_Task(String addr, int port) {
-            dstAddress = addr;
-            dstPort = port;
-        }
-
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            try {
-                Log.d("connectTask", "connectTask");
-                socket = null;
-                socket = new Socket(dstAddress, dstPort);
-
-            } catch (UnknownHostException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "UnknownHostException: " + e.toString();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "IOException: " + e.toString();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            Log.d("result", String.valueOf(result));
-        }
-
-    }
-
-    public class MyClient_send_Task extends AsyncTask<String, Void, Void> {
-        String response = "";
-
-        @Override
-        protected Void doInBackground(String... arg0) {
-            try {
-                Log.d("sendTask", "sendTask");
-                byte[] data = arg0[0].getBytes("UTF-8");
-                OutputStream os = socket.getOutputStream();
-                os.write(data);
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);
-                byte[] buffer = new byte[1024];
-
-                int bytesRead;
-                InputStream inputStream = socket.getInputStream();
-
-    /*
-     * notice:
-     * inputStream.read() will block if no data return
-     */
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    byteArrayOutputStream.write(buffer, 0, bytesRead);
-                    response += byteArrayOutputStream.toString("UTF-8");
-                }
-
-            } catch (UnknownHostException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "UnknownHostException: " + e.toString();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "IOException: " + e.toString();
-            } finally {
-                if (socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-            Log.d("result", String.valueOf(result));
-        }
-
-    }
-
     public void writeData() {
         try {
             FileOutputStream fos = openFileOutput("settings.dat", Context.MODE_PRIVATE);
@@ -820,6 +500,7 @@ public class MainActivity extends AppCompatActivity {
             data.put("yellow_warn", yellow_warn);
             data.put("red_warn", red_warn);
             data.put("channel_total", channel_total);
+            data.put("Sensor_IP", Sensor_IP[0]);
             data.put("openPush",openPush);
             osw.write(data.toString());
             osw.flush();
@@ -852,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
                 yellow_warn = Integer.parseInt(data.getString("yellow_warn"));
                 red_warn = Integer.parseInt(data.getString("red_warn"));
                 channel_total = Integer.parseInt(data.getString("channel_total"));
+                Sensor_IP[0] = data.getString("Sensor_IP");
                 openPush = data.getBoolean("openPush");
             }
         } catch (IOException ioe) {
