@@ -375,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
             int progress = 0;
 
             public void onProgressChanged(SeekBar seekBar2, int progressV, boolean fromUser) {
+                Log.d("onProgressChanged","onProgressChanged");
                 progress = progressV;
                 text4.setText((progress) + "%");
                 red_warn = progress;
@@ -391,6 +392,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.d("onStopTrackingTouch","onStopTrackingTouch");
+                if(openPush){
+                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
+                    intent.putExtra("User_APIKEY", User_APIKEY);
+                    intent.putExtra("red_warn", red_warn);
+                    startService(intent);
+                }
             }
         });
 
@@ -399,11 +407,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    openPush=isChecked;
                     Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
                     intent.putExtra("User_APIKEY", User_APIKEY);
                     intent.putExtra("red_warn", red_warn);
                     startService(intent);
                 } else {
+                    openPush=isChecked;
                     Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
                     intent.putExtra("User_APIKEY", User_APIKEY);
                     intent.putExtra("red_warn", red_warn);

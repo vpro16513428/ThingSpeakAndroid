@@ -95,21 +95,11 @@ public class NUTC_FDS_Service extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        readSavedData();
-        mUser=new User(User_APIKEY);
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
-        if(intent!=null) {
-            User_APIKEY = intent.getStringExtra("User_APIKEY").toString();
-            red_warn = intent.getIntExtra("red_warn", red_warn);
-            mUser = new User(User_APIKEY);
-            mUser.setOnRefreshChannelListener(new refreshListner());
-        }
+        readSavedData();
+        mUser = new User(User_APIKEY);
+        mUser.setOnRefreshChannelListener(new refreshListner());
         handler.postDelayed(showTime, 1000);
     }
 
