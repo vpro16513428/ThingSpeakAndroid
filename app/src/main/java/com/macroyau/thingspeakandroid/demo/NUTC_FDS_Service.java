@@ -1,7 +1,7 @@
 package com.macroyau.thingspeakandroid.demo;
 
 /**
- * Created by user on 2016/5/20.
+ * Created by vpro16513428 on 2016/5/20.
  */
 
 import android.app.Notification;
