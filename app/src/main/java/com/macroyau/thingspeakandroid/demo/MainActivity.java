@@ -116,6 +116,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = new Intent(MainActivity.this,mainService.class);
+        intent.putExtra("User_APIKEY", User_APIKEY);
+        startService(intent);
+        Toast.makeText(MainActivity.this, "mianService start", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         if (openPush) {

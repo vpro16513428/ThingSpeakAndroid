@@ -19,15 +19,12 @@ import com.macroyau.thingspeakandroid.ThingSpeakChannel;
 import com.macroyau.thingspeakandroid.User;
 import com.macroyau.thingspeakandroid.model.Channel;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 //繼承android.app.Service
@@ -51,16 +48,20 @@ public class NUTC_FDS_Service extends Service {
     public void writeData() {
         try {
             FileOutputStream fos = openFileOutput("service.dat", Context.MODE_PRIVATE);
-            OutputStreamWriter osw = new OutputStreamWriter(fos);
-            JSONObject data = new JSONObject();
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
 
-            data.put("User_APIKEY", User_APIKEY);
-            data.put("red_warn", red_warn);
+            List<Object> data = new ArrayList<>();
+            data.add(0,User_APIKEY);
+            data.add(1,red_warn);
+            data.add(2,channel_total);
+            data.add(3,Prechannel_total);
+            data.add(4,pushtag);
+            data.add(5,tsChannel);
 
-            osw.write(data.toString());
-            osw.flush();
-            osw.close();
-
+            oos.writeObject(data);
+            oos.flush();
+            oos.close();
+            fos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,27 +70,22 @@ public class NUTC_FDS_Service extends Service {
     public void readSavedData() {
         StringBuffer datax = new StringBuffer("");
         try {
-            FileInputStream fIn = openFileInput("service.dat");
-            InputStreamReader isr = new InputStreamReader(fIn);
-            BufferedReader buffreader = new BufferedReader(isr);
+            FileInputStream fis = openFileInput("service.dat");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            List<Object> data = (List<Object>) ois.readObject();
 
-            String readString = buffreader.readLine();
-            while (readString != null) {
-                datax.append(readString);
-                readString = buffreader.readLine();
-            }
+            User_APIKEY = (String) data.get(0);
+            red_warn = (int) data.get(1);
+            channel_total = (int) data.get(2);
+            Prechannel_total = (int) data.get(3);
+            pushtag = (int[]) data.get(4);
+            tsChannel = (ThingSpeakChannel[]) data.get(5);
 
-            isr.close();
-            Log.d("datax",datax.toString());
-            if(datax.toString()!=""){
-                JSONObject data = null;
-                data = new JSONObject(datax.toString());
-                User_APIKEY = data.getString("User_APIKEY");
-                red_warn = data.getInt("red_warn");
-            }
+            ois.close();
+            fis.close();
         } catch (IOException ioe) {
             ioe.printStackTrace();
-        } catch (JSONException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
