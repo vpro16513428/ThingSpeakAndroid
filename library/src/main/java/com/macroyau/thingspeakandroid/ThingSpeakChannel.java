@@ -183,11 +183,9 @@ public class ThingSpeakChannel {
         mChannelPercnetPre=percent;
     }
 
-    /***
-     * Set the timezone for all requests in this specific Channel.
-     *
-     * @param timezone A valid timezone identifier (https://thingspeak.com/docs#timezones).
-     */
+    public void setChannelname(String name){
+        mChannelname=name;
+    }
 
     /***
      * Set the number of feed entries to be retrieved for all requests in this specific Channel.

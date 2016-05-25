@@ -2,9 +2,9 @@
     <string name="app_name">液難忘_FDS</string>
     <string name="action_add">新增</string>
     <string name="action_settings">設定</string>
-    <string name="action_set_sensor">指派給裝置</string>
+    <string name="action_set_sensor">指派裝置</string>
     <string name="action_del">刪除</string>
-    <string name="action_edit">修改</string>
+    <string name="action_edit">更改</string>
     <string name="action_reset">重置</string>
     <string name="tvApSsidTitle">SSID: </string>
     <string name="tvPasswordTitle">Password: </string>

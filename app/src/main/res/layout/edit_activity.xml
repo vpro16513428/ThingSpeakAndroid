@@ -10,5 +10,5 @@
         android:id="@+id/edit2"
         android:singleLine="true"
         android:inputType=""
-        android:hint="修改物品名稱 EX:洗髮精"/>
+        android:hint="更改名稱 EX:洗髮精(至多六個字)"/>
 </LinearLayout>

@@ -139,7 +139,7 @@ public class NUTC_FDS_Service extends Service {
                         final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE); // 取得系統的通知服務
                         final Notification notification = new Notification.Builder(getApplicationContext())
                                 .setSmallIcon(R.mipmap.ic_launcher)
-                                .setContentTitle("液難忘_FDS")
+                                .setContentTitle("容量過低")
                                 .setVibrate(vibrate_effect)
                                 .setSound(soundUri)
                                 .setContentText(tsChannel[i].getChannelname()+"只剩下"+tsChannel[i].getChannelPercent()+"%囉!!").build(); // 建立通知
@@ -156,7 +156,7 @@ public class NUTC_FDS_Service extends Service {
                         final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE); // 取得系統的通知服務
                         final Notification notification = new Notification.Builder(getApplicationContext())
                                 .setSmallIcon(R.mipmap.ic_launcher)
-                                .setContentTitle("剩餘量更新提醒")
+                                .setContentTitle("剩餘量更新")
                                 .setVibrate(vibrate_effect)
                                 .setSound(soundUri)
                                 .setContentText(tsChannel[i].getChannelname()+"剩下："+tsChannel[i].getChannelPercent()+"%").build(); // 建立通知

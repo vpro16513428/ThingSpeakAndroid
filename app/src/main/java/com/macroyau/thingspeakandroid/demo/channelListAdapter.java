@@ -107,10 +107,10 @@ public class channelListAdapter extends BaseAdapter {
         }
 
         if(mItem[position].getChannelPercent()!=null){ //防止APP剛開 初始化的狀態出錯
-            if(mItem[position].getChannelname().length()<5){
+            if(mItem[position].getChannelname().length()<7){
                 holder.tv_channelName.setText(mItem[position].getChannelname());
             }else{
-                holder.tv_channelName.setText(mItem[position].getChannelname().substring(0,3)+"...");
+                holder.tv_channelName.setText(mItem[position].getChannelname().substring(0,6)+"...");
             }
             holder.tv_channelPercent.setText(mItem[position].getChannelPercent()+"%");
 
@@ -171,6 +171,7 @@ public class channelListAdapter extends BaseAdapter {
                                                 @Override
                                                 public void onClick(DialogInterface dialog, int which) {
                                                     if (!inputText2.getText().toString().equals("")){
+                                                        mItem[pos].setChannelname(inputText2.getText().toString());
                                                         mUser.editChannel(mItem[pos].getChannelId(),inputText2.getText().toString());
                                                     }
                                                 }
@@ -179,7 +180,7 @@ public class channelListAdapter extends BaseAdapter {
                             break;
                         case R.id.action_delete:
                             new AlertDialog.Builder(mContext)
-                                    .setTitle("確定刪除?")
+                                    .setTitle("確認刪除")
                                     .setMessage(mItem[pos].getChannelname())
                                     .setPositiveButton("取消",
                                             new DialogInterface.OnClickListener() {
@@ -199,7 +200,7 @@ public class channelListAdapter extends BaseAdapter {
                             break;
                         case R.id.action_reset:
                             new AlertDialog.Builder(mContext)
-                                    .setTitle("確定重置?")
+                                    .setTitle("確認重置")
                                     .setMessage(mItem[pos].getChannelname())
                                     .setPositiveButton("取消",
                                             new DialogInterface.OnClickListener() {
@@ -219,7 +220,7 @@ public class channelListAdapter extends BaseAdapter {
                             break;
                         case R.id.action_set_sensor:
                             final String[] str_IP = new String[mSensor_IP.length+1];
-                            str_IP[0] = "請選擇要指派的裝置 IP：";
+                            str_IP[0] = "選擇指派的裝置 IP：";
                             for (int i=1; i < mSensor_IP.length+1; i++){
                                 str_IP[i] = mSensor_IP[i-1];
                             }
