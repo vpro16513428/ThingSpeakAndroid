@@ -102,6 +102,7 @@ public class ThingSpeakChannel {
     private long mChannelId;
     private String mChannelname;
     private String mChannelPercnet;
+    private String mChannelPercnetPre;
     private String mWriteApiKey;
     private String mReadApiKey;
     private int mResults = 100;
@@ -178,14 +179,15 @@ public class ThingSpeakChannel {
         this.mReadApiKey = readApiKey;
     }
 
+    public void setChannelPercnetPre(String percent){
+        mChannelPercnetPre=percent;
+    }
+
     /***
      * Set the timezone for all requests in this specific Channel.
      *
      * @param timezone A valid timezone identifier (https://thingspeak.com/docs#timezones).
      */
-    public void setTimezone(String timezone) {
-        this.mTimezone = timezone;
-    }
 
     /***
      * Set the number of feed entries to be retrieved for all requests in this specific Channel.
@@ -298,6 +300,10 @@ public class ThingSpeakChannel {
         return mChannelPercnet;
     }
 
+    public String getChannelPercentPre() {
+        return mChannelPercnetPre;
+    }
+
     public String getChannelname() {
         return mChannelname;
     }
@@ -323,8 +329,9 @@ public class ThingSpeakChannel {
                         }
                     }
                     percent=tempLast/tempMax;
-                    mChannelPercnet= String.format("%.1f", percent*100);
+                    mChannelPercnet = String.format("%.1f", percent*100);
                 }else {
+                    mChannelPercnetPre="0.0";
                     mChannelPercnet="0.0";
                 }
                 if (mChannelFeedUpdateListener != null) {

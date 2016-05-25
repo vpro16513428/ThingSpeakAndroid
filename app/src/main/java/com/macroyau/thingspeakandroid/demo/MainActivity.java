@@ -18,7 +18,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -195,9 +194,19 @@ public class MainActivity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which){
-                                channelListAdapter.setYellowWarnValue(yellow_warn);
-                                channelListAdapter.setRedWarnValue(red_warn);
-                                channelListAdapter.notifyDataSetChanged();
+                                if (Push_switch.isChecked()) {
+                                    openPush=true;
+                                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
+                                    intent.putExtra("User_APIKEY", User_APIKEY);
+                                    intent.putExtra("red_warn", red_warn);
+                                    startService(intent);
+                                } else {
+                                    openPush = false;
+                                    Intent intent = new Intent(MainActivity.this, NUTC_FDS_Service.class);
+                                    intent.putExtra("User_APIKEY", User_APIKEY);
+                                    intent.putExtra("red_warn", red_warn);
+                                    stopService(intent);
+                                }
                             }
                         });
 
@@ -234,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                 red_warn = progress;
                 if (red_warn<1){
                     seekBar2.setProgress(1);
-                    yellow_warn = 1;
+                    red_warn = 1;
                     text4.setText((progress) + "%");
                 }
                 channelListAdapter.setRedWarnValue(red_warn);
@@ -256,24 +265,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Push_switch.setChecked(openPush);
-        Push_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    openPush=isChecked;
-                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-                    intent.putExtra("User_APIKEY", User_APIKEY);
-                    intent.putExtra("red_warn", red_warn);
-                    startService(intent);
-                } else {
-                    openPush=isChecked;
-                    Intent intent = new Intent(MainActivity.this,NUTC_FDS_Service.class);
-                    intent.putExtra("User_APIKEY", User_APIKEY);
-                    intent.putExtra("red_warn", red_warn);
-                    stopService(intent);
-                }
-            }
-        });
 
         scn_btn.setOnClickListener(new View.OnClickListener() {
             @Override

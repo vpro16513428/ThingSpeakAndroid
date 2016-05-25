@@ -98,6 +98,10 @@ public class NUTC_FDS_Service extends Service {
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
         readSavedData();
+        if(intent!=null){
+            User_APIKEY = intent.getStringExtra("User_APIKEY");
+            red_warn = intent.getIntExtra("red_warn",20);
+        }
         mUser = new User(User_APIKEY);
         mUser.setOnRefreshChannelListener(new refreshListner());
         handler.postDelayed(showTime, 1000);
@@ -108,6 +112,10 @@ public class NUTC_FDS_Service extends Service {
         writeData();
         handler.removeCallbacks(showTime);
         super.onDestroy();
+    }
+
+    public void setRed_warn(int value){
+        red_warn=value;
     }
 
     @Override
@@ -140,6 +148,23 @@ public class NUTC_FDS_Service extends Service {
                         notificationManager.notify(notifyID, notification); // 發送通知
                         pushtag[i]=1;
                     }
+                    if(Float.parseFloat(tsChannel[i].getChannelPercent()) > red_warn && !tsChannel[i].getChannelPercent().equals(tsChannel[i].getChannelPercentPre()) && pushtag[i]==0 && !tsChannel[i].getChannelPercent().equals("0.0")){
+                        final int notifyID = Integer.valueOf(String.valueOf(tsChannel[i].getChannelId())); // 通知的識別號碼
+                        // 建立震動效果，陣列中元素依序為停止、震動的時間，單位是毫秒
+                        long[] vibrate_effect = {500, 500, 500, 500};
+                        final Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION); // 通知音效的URI，在這裡使用系統內建的通知音效
+                        final NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE); // 取得系統的通知服務
+                        final Notification notification = new Notification.Builder(getApplicationContext())
+                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setContentTitle("剩餘量更新提醒")
+                                .setVibrate(vibrate_effect)
+                                .setSound(soundUri)
+                                .setContentText(tsChannel[i].getChannelname()+"剩下："+tsChannel[i].getChannelPercent()+"%").build(); // 建立通知
+                        //notification.defaults=Notification.DEFAULT_ALL;
+                        //notification.flags = Notification.FLAG_AUTO_CANCEL;
+                        notificationManager.notify(notifyID, notification); // 發送通知
+                        tsChannel[i].setChannelPercnetPre(tsChannel[i].getChannelPercent());
+                    }
                 }
             }
             handler.postDelayed(this, 1000);
@@ -156,13 +181,18 @@ public class NUTC_FDS_Service extends Service {
                 channel_total = channels.size(); //把數量轉換成索引值最大值
                 tsChannel = new ThingSpeakChannel[channels.size()];
                 pushtag=new int[channels.size()];
-                for (int i = 0; i < channels.size(); i++) {
+
+                for (int i = 0; i < Prechannel_total; i++) {
                     tsChannel[i] = new ThingSpeakChannel(channels.get(i).getId(), channels.get(i).getName(), channels.get(i).getApiKeys().get(0).getApiKey());
+                    tsChannel[i].loadChannelFeed();
                 }
+
             }
 
-            for (int i = 0; i < channels.size(); i++) {
-                tsChannel[i].loadChannelFeed();
+            if(tsChannel.length!=0){
+                for (int i = 0; i < channels.size(); i++) {
+                    tsChannel[i].loadChannelFeed();
+                }
             }
         }
     }
