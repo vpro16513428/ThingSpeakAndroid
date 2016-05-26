@@ -4,8 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    tools:context="com.macroyau.thingspeakandroid.demo.MainActivity"
-    android:background="@drawable/official_app_page_header_bg">
+    tools:context="com.macroyau.thingspeakandroid.demo.MainActivity">
 
     <ListView
         android:layout_width="wrap_content"

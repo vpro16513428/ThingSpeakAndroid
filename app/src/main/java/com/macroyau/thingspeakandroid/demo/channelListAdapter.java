@@ -92,19 +92,17 @@ public class channelListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertview, ViewGroup parent) {
         ViewHolder holder;
-        if (convertView == null) {
-            convertView = li.inflate(R.layout.channel, parent, false);
-            holder = new ViewHolder();
-            holder.tv_channelName = (TextView) convertView.findViewById(R.id.tv_channelName);
-            holder.tv_channelPercent = (TextView) convertView.findViewById(R.id.tv_channelPercent);
-            holder.channelMainBtn = (Button) convertView.findViewById(R.id.channelMainBtn);
-            holder.channelMainBtn.setOnClickListener(new channelMainBtnOnClickListener(position));
-            convertView.setTag(holder);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
-        }
+        convertview = li.inflate(R.layout.channel, parent, false);
+        holder = new ViewHolder();
+        holder.tv_channelName = (TextView) convertview.findViewById(R.id.tv_channelName);
+        holder.tv_channelPercent = (TextView) convertview.findViewById(R.id.tv_channelPercent);
+        Log.d("position",String.valueOf(position));
+        holder.channelMainBtn = (Button) convertview.findViewById(R.id.channelMainBtn);
+        holder.channelMainBtn.setOnClickListener(new channelMainBtnOnClickListener(position));
+        convertview.setTag(holder);
+        holder = (ViewHolder) convertview.getTag();
 
         if(mItem[position].getChannelPercent()!=null){ //防止APP剛開 初始化的狀態出錯
             if(mItem[position].getChannelname().length()<7){
@@ -115,16 +113,16 @@ public class channelListAdapter extends BaseAdapter {
             holder.tv_channelPercent.setText(mItem[position].getChannelPercent()+"%");
 
             float itemPercent= Float.parseFloat(mItem[position].getChannelPercent());
-            convertView.setBackgroundResource(R.drawable.channel_corner_green);
+            convertview.setBackgroundResource(R.drawable.channel_corner_green);
             if (itemPercent<=yellow_warn){
-                convertView.setBackgroundResource(R.drawable.channel_corner_yellow);
+                convertview.setBackgroundResource(R.drawable.channel_corner_yellow);
 
             }
             if (itemPercent<=red_warn){
-                convertView.setBackgroundResource(R.drawable.channel_corner_red);
+                convertview.setBackgroundResource(R.drawable.channel_corner_red);
             }
         }
-        return convertView;
+        return convertview;
     }
 
     public void setYellowWarnValue(int value){
