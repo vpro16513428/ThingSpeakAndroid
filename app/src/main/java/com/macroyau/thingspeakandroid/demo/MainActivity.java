@@ -122,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("User_APIKEY", User_APIKEY);
         startService(intent);
         Toast.makeText(MainActivity.this, "mianService start", Toast.LENGTH_SHORT).show();
+        intent = new Intent(MainActivity.this, NUTC_FDS_Service.class);
+        intent.putExtra("User_APIKEY", User_APIKEY);
+        intent.putExtra("red_warn", red_warn);
+        stopService(intent);
+        Toast.makeText(MainActivity.this, "Notify stop", Toast.LENGTH_SHORT).show();
     }
 
     @Override

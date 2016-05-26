@@ -54,9 +54,6 @@ public class NUTC_FDS_Service extends Service {
             data.add(0,User_APIKEY);
             data.add(1,red_warn);
             data.add(2,channel_total);
-            data.add(3,Prechannel_total);
-            data.add(4,pushtag);
-            data.add(5,tsChannel);
 
             oos.writeObject(data);
             oos.flush();
@@ -68,7 +65,6 @@ public class NUTC_FDS_Service extends Service {
     }
 
     public void readSavedData() {
-        StringBuffer datax = new StringBuffer("");
         try {
             FileInputStream fis = openFileInput("service.dat");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -77,9 +73,6 @@ public class NUTC_FDS_Service extends Service {
             User_APIKEY = (String) data.get(0);
             red_warn = (int) data.get(1);
             channel_total = (int) data.get(2);
-            Prechannel_total = (int) data.get(3);
-            pushtag = (int[]) data.get(4);
-            tsChannel = (ThingSpeakChannel[]) data.get(5);
 
             ois.close();
             fis.close();
@@ -93,6 +86,7 @@ public class NUTC_FDS_Service extends Service {
     @Override
     public void onStart(Intent intent, int startId) {
         super.onStart(intent, startId);
+        Log.d("onStart","onStart");
         readSavedData();
         if(intent!=null){
             User_APIKEY = intent.getStringExtra("User_APIKEY");
@@ -123,7 +117,7 @@ public class NUTC_FDS_Service extends Service {
         public void run() {
             mUser.refreshMyChannels();
             for(int i =0;i<channel_total;i++){
-                if (tsChannel[i].getChannelPercent()!=null){
+                if (tsChannel!=null && tsChannel.length>0 && tsChannel[i].getChannelPercent()!=null){
                     if(tsChannel[i].getChannelPercent().equals("0.0")){
                         pushtag[i]=0;
                     }
@@ -172,17 +166,15 @@ public class NUTC_FDS_Service extends Service {
 
         @Override
         public void OnRefreshedChannel(List<Channel> channels) {
-            if (channels.size() != Prechannel_total) {
-                Prechannel_total = channels.size();
+            if (channels.size() != Prechannel_total) { //新增
                 channel_total = channels.size(); //把數量轉換成索引值最大值
+                Prechannel_total = channels.size();
                 tsChannel = new ThingSpeakChannel[channels.size()];
                 pushtag=new int[channels.size()];
-
                 for (int i = 0; i < Prechannel_total; i++) {
                     tsChannel[i] = new ThingSpeakChannel(channels.get(i).getId(), channels.get(i).getName(), channels.get(i).getApiKeys().get(0).getApiKey());
                     tsChannel[i].loadChannelFeed();
                 }
-
             }
 
             if(tsChannel.length!=0){

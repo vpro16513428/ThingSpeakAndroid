@@ -94,15 +94,20 @@ public class channelListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertview, ViewGroup parent) {
         ViewHolder holder;
-        Log.d("postition",String.valueOf(position));
-        convertview = li.inflate(R.layout.channel, parent, false);
-        holder = new ViewHolder();
-        holder.tv_channelName = (TextView) convertview.findViewById(R.id.tv_channelName);
-        holder.tv_channelPercent = (TextView) convertview.findViewById(R.id.tv_channelPercent);
-        holder.channelMainBtn = (Button) convertview.findViewById(R.id.channelMainBtn);
-        holder.channelMainBtn.setOnClickListener(new channelMainBtnOnClickListener(position));
-        convertview.setTag(holder);
-        holder = (ViewHolder) convertview.getTag();
+        if(convertview==null){
+            Log.d("pos", String.valueOf(position));
+            convertview = li.inflate(R.layout.channel, parent, false);
+            holder = new ViewHolder();
+            holder.tv_channelName = (TextView) convertview.findViewById(R.id.tv_channelName);
+            holder.tv_channelPercent = (TextView) convertview.findViewById(R.id.tv_channelPercent);
+            holder.channelMainBtn = (Button) convertview.findViewById(R.id.channelMainBtn);
+            holder.channelMainBtn.setOnClickListener(new channelMainBtnOnClickListener(position));
+            convertview.setTag(holder);
+        }else{
+            holder = (ViewHolder) convertview.getTag();
+        }
+
+
 
         if(mItem[position].getChannelPercent()!=null){ //防止APP剛開 初始化的狀態出錯
 
@@ -244,8 +249,18 @@ public class channelListAdapter extends BaseAdapter {
                                 @Override
                                 public void onClick(View v) {
                                     if (v == buttonConnect && IP_selected_pos!=0) {
-                                        Sensor_connect_Task connect_Task = new Sensor_connect_Task(str_IP[IP_selected_pos], 18266 ,mItem[pos].getWirteKey());
-                                        connect_Task.execute();
+                                        if(socket!=null){
+                                            if(!socket.isClosed()){
+                                                try {
+                                                    socket.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                                Log.d("connectTask", String.valueOf(socket.isClosed()));
+                                            }
+                                        }
+                                        Sensor_connect_Task cTask = new Sensor_connect_Task(str_IP[IP_selected_pos], 18266 ,mItem[pos].getWirteKey());
+                                        cTask.execute();
                                     }
                                     else{
                                         new AlertDialog.Builder(mContext)
@@ -344,7 +359,6 @@ public class channelListAdapter extends BaseAdapter {
                     response += byteArrayOutputStream.toString("UTF-8");
                 }
                 Log.d("response",response);
-
             } catch (UnknownHostException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -353,15 +367,6 @@ public class channelListAdapter extends BaseAdapter {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 response = "IOException: " + e.toString();
-            } finally {
-                if (socket != null) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
             }
             return null;
         }
